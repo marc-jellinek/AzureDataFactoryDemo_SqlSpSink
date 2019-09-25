@@ -215,7 +215,7 @@ After a few minutes or so, this is what you will see:
 
 Let's query the target database and see what landed.
 
-Go back into Visual Studio code and open 0050_QueryTargetTable.sql.  Connect to the target database and run the query using Ctrl-Alt-E.  You will see this:
+Go back into Visual Studio Code and open 0050_QueryTargetTable.sql.  Connect to the target database and run the query using Ctrl-Alt-E.  You will see this:
 
 ![Target Database Query Results](./graphics/0140_TargetDatabasePostPipelineRunQueryResults.png)
 
@@ -223,7 +223,7 @@ The first resultset shows 100 Employee, 0 rows in Employee_History and 4 entries
 
 From the operations event log, we see that the pipeline "Merge Source Employees to Target Employees" (OpsSK=1) successfully called the stored procedure [dim].[Load_Employee] supplying 100 rows of data to be processed (OpsSK=2).  We see that the stored procedure [dim].[Load_Employee] completed without error (OpsSK=3) and returned control to the data factory pipeline (OpsSK=4).
 
-I expect that I should have 100 rows in dim.Employee, and I do.  They data appears valid with unique first and last names.
+I expect that I should have 100 rows in dim.Employee, and I do.  The data appears valid with unique first and last names.
 
 Now let's test out the Slowly Changing Dimension Type 4 (wow, that sounds so official!) functionality by modifying data in the source database.  Open up file 0060_UpdateSourceDatabase.sql.  We will
 
@@ -266,7 +266,7 @@ Here's the key giveaway:
 
 The good news is that MERGing into a temporal table is a good way to generate SCD4 dimension tables.  That part works!  Hooray for us!
 
-Go back to Visual Studio and open 
+Go back to Visual Studio Code and open 
 
 What was going on?  Rather than supplying all the source data in dbo.Load_Employee, the stored procedure was called multiple times with batches of the source data.  The way the MERGE was written (look inside dbo.Load_Employee or in file 0030_DeployTargetDatabaseObjects.sql), if a row exists in the target, but does not exists in the source, that row is deleted from the target.  Since there were lots of rows that didn't exist in what the stored proc saw as the source, it deleted rows in the target.
 
@@ -291,4 +291,4 @@ Log Everything
 Examine your logs
 Love your testers (who were the ones who actually caught the problem)
 When something doens't work, fix it
-It's a parallel-in-memory-Spark-inspired-source-of-compute world out there.
+It's a parallel-cloud-in-memory-Spark-inspired-source-of-compute world out there.
