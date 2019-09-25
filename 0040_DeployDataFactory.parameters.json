@@ -1,0 +1,15 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "factoryName": {
+            "value": "AzureDataFactoryDemo-SqlSpSink-Data-Factory"
+        },
+        "SourceDatabase_connectionString": {
+            "value": "Server=tcp:@{linkedService().SourceDatabaseServerName},1433;Initial Catalog=SourceDatabase;Persist Security Info=False;User ID=demoadmin;Password=$#5Si55W^#qo;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+        },
+        "TargetDatabase_connectionString": {
+            "value": "Server=tcp:@{linkedService().TargetDatabaseServerName},1433;Initial Catalog=TargetDatabase;Persist Security Info=False;User ID=demoadmin;Password=$#5Si55W^#qo;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+        }
+    }
+}

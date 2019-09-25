@@ -1,0 +1,1 @@
+New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile ".\0040_DeployDataFactory.json" -TemplateParameterFile "./0040_DeployDataFactory.parameters.json"

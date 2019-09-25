@@ -1,0 +1,1 @@
+New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile ".\0010_DeploySourceAndTargetDatabase.json"

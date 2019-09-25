@@ -1,0 +1,110 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sourceServerName": {
+            "type": "string",
+            "defaultValue": "[newGuid()]"
+        },
+        "targetServerName": {
+            "type": "string",
+            "defaultValue": "[newGuid()]"
+        }
+    },
+    "variables": {
+        "sourceDatabaseServerName": "[parameters('sourceServerName')]",
+        "targetDatabaseServerName": "[parameters('targetServerName')]",
+        "adminUser": "demoadmin",
+        "adminPassword": "$#5Si55W^#qo"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Sql/servers",
+            "name": "[variables('sourceDatabaseServerName')]",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-05-01-preview",
+            "properties": {
+                "administratorLogin": "[variables('adminUser')]",
+                "administratorLoginPassword": "[variables('adminPassword')]",
+                "version": "12.0"
+            },
+            "resources": [
+                {
+                    "type": "Microsoft.Sql/servers/databases",
+                    "name": "[concat(string(variables('sourceDatabaseServerName')), '/SourceDatabase')]",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2017-10-01-preview",
+                    "sku": {
+                        "name": "Basic", 
+                        "tier":"Basic"
+                    },
+                    "dependsOn": [
+                        "[resourceID('Microsoft.Sql/servers/', variables('sourceDatabaseServerName'))]"
+                    ]
+                },
+                {
+                    "type": "firewallrules",
+                    "name": "AllowAllAzureIps",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2015-05-01-preview",
+                    "dependsOn": [
+                        "[resourceID('Microsoft.Sql/servers/', variables('sourceDatabaseServerName'))]"
+                    ],
+                    "properties": {
+                        "startIpAddress": "0.0.0.0",
+                        "endIpAddress": "255.255.255.255"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Sql/servers",
+            "name": "[variables('targetDatabaseServerName')]",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-05-01-preview",
+            "properties": {
+                "administratorLogin": "[variables('adminUser')]",
+                "administratorLoginPassword": "[variables('adminPassword')]",
+                "version": "12.0"
+            },
+            "resources": [
+                {
+                    "type": "Microsoft.Sql/servers/databases",
+                    "name": "[concat(string(variables('targetDatabaseServerName')), '/TargetDatabase')]",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2017-10-01-preview",
+                    "sku": {
+                        "name": "Basic", 
+                        "tier":"Basic"
+                    },
+                    "dependsOn": [
+                        "[resourceID('Microsoft.Sql/servers/', variables('targetDatabaseServerName'))]"
+                    ]
+                },
+                {
+                    "type": "firewallrules",
+                    "name": "AllowAllAzureIps",
+                    "location": "[resourceGroup().location]",
+                    "apiVersion": "2015-05-01-preview",
+                    "dependsOn": [
+                        "[resourceID('Microsoft.Sql/servers/', variables('targetDatabaseServerName'))]"
+                    ],
+                    "properties": {
+                        "startIpAddress": "0.0.0.0",
+                        "endIpAddress": "255.255.255.255"
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "sourceDatabaseConnectionString": {
+            "value": "[concat('Server=tcp:', variables('sourceDatabaseServerName'), '.database.windows.net,1433:Initial Catalog=SourceDatabase;Persist Security Info=False;User ID=', variables('adminUser'), ';Password=', variables('adminPassword'), ';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+            "type": "string"
+        },
+        "targetDatabaseConnectionString": {
+            "value": "[concat('Server=tcp:', variables('targetDatabaseServerName'), '.database.windows.net,1433:Initial Catalog=TargetDatabase;Persist Security Info=False;User ID=', variables('adminUser'), ';Password=', variables('adminPassword'), ';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+            "type": "string"
+        }
+    }
+}
