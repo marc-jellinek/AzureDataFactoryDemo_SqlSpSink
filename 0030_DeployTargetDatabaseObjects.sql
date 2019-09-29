@@ -22,14 +22,16 @@ GO
 CREATE SCHEMA Audit;
 GO
 
-CREATE TABLE Audit.OperationsEventLog(
-    OpsSK int IDENTITY, 
-    EventDateTime datetime DEFAULT GETDATE(), 
-    EventState varchar(100), 
-    SourceType varchar(100), -- stored procedure, data factory pipeline, etc
+CREATE TABLE Audit.OperationsEventLog
+(
+    OpsSK int IDENTITY,
+    EventDateTime datetime DEFAULT GETDATE(),
+    EventState varchar(100),
+    SourceType varchar(100),
+    -- stored procedure, data factory pipeline, etc
     SourceName varchar(100),
-    ErrorNumber int NULL, 
-    ErrorMessage varchar(8000) NULL, 
+    ErrorNumber int NULL,
+    ErrorMessage varchar(8000) NULL,
     StatusMessage varchar(8000) NOT NULL
 );
 GO
@@ -62,17 +64,20 @@ DROP PROCEDURE IF EXISTS Audit.InsertOperationsEventLog;
 GO
 
 CREATE PROCEDURE Audit.InsertOperationsEventLog
-    @EventState varchar(100), 
-    @SourceType varchar(100), -- stored procedure, data factory pipeline, etc
+    @EventState varchar(100),
+    @SourceType varchar(100),
+    -- stored procedure, data factory pipeline, etc
     @SourceName varchar(100),
-    @ErrorNumber int, 
-    @ErrorMessage varchar(8000), 
+    @ErrorNumber int,
+    @ErrorMessage varchar(8000),
     @StatusMessage varchar(8000)
 AS
 BEGIN
     BEGIN TRY
-        INSERT INTO Audit.OperationsEventLog([EventState], [SourceType], [SourceName], [ErrorNumber], [ErrorMessage], [StatusMessage])
-        VALUES (@EventState, @SourceType, @SourceName, @ErrorNumber, @ErrorMessage, @StatusMessage)
+        INSERT INTO Audit.OperationsEventLog
+        ([EventState], [SourceType], [SourceName], [ErrorNumber], [ErrorMessage], [StatusMessage])
+    VALUES
+        (@EventState, @SourceType, @SourceName, @ErrorNumber, @ErrorMessage, @StatusMessage)
     END TRY
     BEGIN CATCH
         SELECT ERROR_NUMBER() as ErrorNumber,
@@ -100,8 +105,8 @@ BEGIN
     DECLARE @SourceRowCount int = 0;
 
     BEGIN TRY
-        SELECT  @SourceRowCount = ISNULL(COUNT(*), 0)
-        FROM    @Employee 
+        SELECT @SourceRowCount = ISNULL(COUNT(*), 0)
+    FROM @Employee 
 
         SET @StatusMessage = 'Starting load of dim.Employee.  Source rowcount: ' + CONVERT(varchar(8000), @SourceRowCount)
 
@@ -118,12 +123,12 @@ BEGIN
         ON      TARGET.SourceKey = SOURCE.id 
         WHEN MATCHED AND
             (   SOURCE.firstName <> TARGET.firstName OR
-                SOURCE.lastName <> TARGET.lastName
+        SOURCE.lastName <> TARGET.lastName
             )
         THEN UPDATE SET
                     target.firstName = source.firstName, 
                     target.lastName = source.lastName 
-        WHEN NOT MATCHED THEN 
+        WHEN NOT MATCHED BY TARGET THEN 
             INSERT(SourceKey, firstName, LastName)
             VALUES (source.id, source.firstName, source.lastName)
         WHEN NOT MATCHED BY SOURCE THEN 

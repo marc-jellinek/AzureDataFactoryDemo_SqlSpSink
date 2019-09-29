@@ -1,3 +1,3 @@
-$resourceGroupName = Read-Host "Enter the resource group to remove"
+#$resourceGroupName = Read-Host "Enter the resource group to remove"
 
-Remove-AzureRmResourceGroup -Name $resourceGroupName
+Remove-AzResourceGroup -Name $resourceGroupName -Force

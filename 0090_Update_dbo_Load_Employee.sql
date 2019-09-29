@@ -1,3 +1,5 @@
+-- don't forget to connect to the target database
+
 ALTER PROCEDURE dim.Load_Employee
     --@Employee as dim.EmployeeType READONLY, no longer needed, read from table Stage.Employee
 AS

@@ -8,10 +8,12 @@ INSERT INTO dbo.Employees(firstName, lastName)
 SELECT      'firstName_' + RIGHT('0000000' + CONVERT(varchar(100), tt.rownum), 7) as firstName, 
             'lastName_' + RIGHT('0000000' + CONVERT(varchar(100), tt.rownum), 7) as lastName
 FROM        R2_20 as tt -- tally table
-WHERE       tt.rownum > 101 AND 
+WHERE       tt.rownum > 100 AND 
             tt.rownum <= 500000;
 GO
 
-SELECT      COUNT(*)
-FROM        dbo.Employees;
+SELECT		COUNT(*)
+FROM		dbo.Employees;
+
+
 GO

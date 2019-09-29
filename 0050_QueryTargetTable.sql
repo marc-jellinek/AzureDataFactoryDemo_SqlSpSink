@@ -8,11 +8,19 @@ FROM        dim.Employee_History;
 GO 
 
 SELECT      *
+FROM        dim.Employee;
+GO
+
+SELECT      *
+FROM        dim.Employee_History;
+GO
+
+SELECT      *
 FROM        Audit.OperationsEventLog
 ORDER BY    OpsSK DESC;
 
 SELECT      OpsSK, 
             StatusMessage
 FROM        Audit.OperationsEventLog
-ORDER BY    OpsSK ASC
+ORDER BY    OpsSK DESC;
 GO

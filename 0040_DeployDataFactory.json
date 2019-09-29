@@ -21,12 +21,25 @@
     },
     "resources": [
         {
-            "name": "[concat(parameters('factoryName'), '/Stage_Employees')]",
+            "name": "[concat(parameters('factoryName'), '/SourceDatabase')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureSqlDatabase",
+                "typeProperties": {
+                    "connectionString": "[parameters('SourceDatabase_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/Source_dbo_Employees')]",
             "type": "Microsoft.DataFactory/factories/datasets",
             "apiVersion": "2018-06-01",
             "properties": {
                 "linkedServiceName": {
-                    "referenceName": "TargetDatabase",
+                    "referenceName": "SourceDatabase",
                     "type": "LinkedServiceReference"
                 },
                 "annotations": [],
@@ -47,8 +60,42 @@
                     }
                 ],
                 "typeProperties": {
-                    "schema": "Stage",
+                    "schema": "dbo",
                     "table": "Employees"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/SourceDatabase')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/TargetDatabase')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureSqlDatabase",
+                "typeProperties": {
+                    "connectionString": "[parameters('TargetDatabase_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/Target_dim_Employees')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "TargetDatabase",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "AzureSqlTable",
+                "schema": [],
+                "typeProperties": {
+                    "schema": "dim",
+                    "table": "Employee"
                 }
             },
             "dependsOn": [

@@ -1,0 +1,580 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "factoryName": {
+            "type": "string",
+            "metadata": "Data Factory name",
+            "defaultValue": "AzureDataFactoryDemo-SqlSpSink-Data-Factory"
+        },
+        "TargetDatabase_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'TargetDatabase'"
+        },
+        "SourceDatabase_connectionString": {
+            "type": "secureString",
+            "metadata": "Secure string for 'connectionString' of 'SourceDatabase'"
+        }
+    },
+    "variables": {
+        "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+    },
+    "resources": [
+        {
+            "name": "[concat(parameters('factoryName'), '/TargetDatabase')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureSqlDatabase",
+                "typeProperties": {
+                    "connectionString": "[parameters('TargetDatabase_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/SourceDatabase')]",
+            "type": "Microsoft.DataFactory/factories/linkedServices",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "annotations": [],
+                "type": "AzureSqlDatabase",
+                "typeProperties": {
+                    "connectionString": "[parameters('SourceDatabase_connectionString')]"
+                }
+            },
+            "dependsOn": []
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/Target_dim_Employees')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "TargetDatabase",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "AzureSqlTable",
+                "schema": [],
+                "typeProperties": {
+                    "schema": "dim",
+                    "table": "Employee"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/TargetDatabase')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/Source_dbo_Employees')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "SourceDatabase",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "AzureSqlTable",
+                "schema": [
+                    {
+                        "name": "id",
+                        "type": "int",
+                        "precision": 10
+                    },
+                    {
+                        "name": "firstName",
+                        "type": "varchar"
+                    },
+                    {
+                        "name": "lastName",
+                        "type": "varchar"
+                    }
+                ],
+                "typeProperties": {
+                    "schema": "dbo",
+                    "table": "Employees"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/SourceDatabase')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/Target_Stage_Employees')]",
+            "type": "Microsoft.DataFactory/factories/datasets",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "linkedServiceName": {
+                    "referenceName": "TargetDatabase",
+                    "type": "LinkedServiceReference"
+                },
+                "annotations": [],
+                "type": "AzureSqlTable",
+                "schema": [
+                    {
+                        "name": "id",
+                        "type": "int",
+                        "precision": 10
+                    },
+                    {
+                        "name": "firstName",
+                        "type": "varchar"
+                    },
+                    {
+                        "name": "lastName",
+                        "type": "varchar"
+                    }
+                ],
+                "typeProperties": {
+                    "schema": "Stage",
+                    "table": "Employees"
+                }
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/TargetDatabase')]"
+            ]
+        },
+        {
+            "name": "[concat(parameters('factoryName'), '/Merge Source Employees to Target Employees')]",
+            "type": "Microsoft.DataFactory/factories/pipelines",
+            "apiVersion": "2018-06-01",
+            "properties": {
+                "activities": [
+                    {
+                        "name": "Log Start of Employees Sync",
+                        "type": "SqlServerStoredProcedure",
+                        "dependsOn": [],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "storedProcedureName": "[[Audit].[InsertOperationsEventLog]",
+                            "storedProcedureParameters": {
+                                "ErrorMessage": {
+                                    "value": null,
+                                    "type": "String"
+                                },
+                                "ErrorNumber": {
+                                    "value": null,
+                                    "type": "Int32"
+                                },
+                                "EventState": {
+                                    "value": "Information",
+                                    "type": "String"
+                                },
+                                "SourceName": {
+                                    "value": "Merge Source Employees to Target Employees",
+                                    "type": "String"
+                                },
+                                "SourceType": {
+                                    "value": "Data Factory Pipeline",
+                                    "type": "String"
+                                },
+                                "StatusMessage": {
+                                    "value": "Start of Employees Sync",
+                                    "type": "String"
+                                }
+                            }
+                        },
+                        "linkedServiceName": {
+                            "referenceName": "TargetDatabase",
+                            "type": "LinkedServiceReference"
+                        }
+                    },
+                    {
+                        "name": "Log Finish of Employees Sync",
+                        "type": "SqlServerStoredProcedure",
+                        "dependsOn": [
+                            {
+                                "activity": "Log Success - Merge to Dimension",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "storedProcedureName": "[[Audit].[InsertOperationsEventLog]",
+                            "storedProcedureParameters": {
+                                "ErrorMessage": {
+                                    "value": null,
+                                    "type": "String"
+                                },
+                                "ErrorNumber": {
+                                    "value": null,
+                                    "type": "Int32"
+                                },
+                                "EventState": {
+                                    "value": "Success",
+                                    "type": "String"
+                                },
+                                "SourceName": {
+                                    "value": "Merge Source Employees to Target Employees",
+                                    "type": "String"
+                                },
+                                "SourceType": {
+                                    "value": "Data Factory Pipeline",
+                                    "type": "String"
+                                },
+                                "StatusMessage": {
+                                    "value": "Finished Employees Sync",
+                                    "type": "String"
+                                }
+                            }
+                        },
+                        "linkedServiceName": {
+                            "referenceName": "TargetDatabase",
+                            "type": "LinkedServiceReference"
+                        }
+                    },
+                    {
+                        "name": "Log Error - Copy Data",
+                        "type": "SqlServerStoredProcedure",
+                        "dependsOn": [
+                            {
+                                "activity": "Copy Data From Source to Stage",
+                                "dependencyConditions": [
+                                    "Failed"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "storedProcedureName": "[[Audit].[InsertOperationsEventLog]",
+                            "storedProcedureParameters": {
+                                "ErrorMessage": {
+                                    "value": {
+                                        "value": "@activity('Copy Data From Source to Stage').output",
+                                        "type": "Expression"
+                                    },
+                                    "type": "String"
+                                },
+                                "ErrorNumber": {
+                                    "value": null,
+                                    "type": "Int32"
+                                },
+                                "EventState": {
+                                    "value": "Success",
+                                    "type": "String"
+                                },
+                                "SourceName": {
+                                    "value": "Merge Source Employees to Target Employees",
+                                    "type": "String"
+                                },
+                                "SourceType": {
+                                    "value": "Data Factory Pipeline",
+                                    "type": "String"
+                                },
+                                "StatusMessage": {
+                                    "value": "Finished Employees Sync",
+                                    "type": "String"
+                                }
+                            }
+                        },
+                        "linkedServiceName": {
+                            "referenceName": "TargetDatabase",
+                            "type": "LinkedServiceReference"
+                        }
+                    },
+                    {
+                        "name": "Copy Data From Source to Stage",
+                        "type": "Copy",
+                        "dependsOn": [
+                            {
+                                "activity": "Log Start of Employees Sync",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "source": {
+                                "type": "AzureSqlSource"
+                            },
+                            "sink": {
+                                "type": "AzureSqlSink",
+                                "preCopyScript": "TRUNCATE TABLE Stage.Employees;",
+                                "disableMetricsCollection": false
+                            },
+                            "enableStaging": false,
+                            "translator": {
+                                "type": "TabularTranslator",
+                                "mappings": [
+                                    {
+                                        "source": {
+                                            "name": "id",
+                                            "type": "Int32"
+                                        },
+                                        "sink": {
+                                            "name": "id",
+                                            "type": "Int32"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "firstName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "firstName",
+                                            "type": "String"
+                                        }
+                                    },
+                                    {
+                                        "source": {
+                                            "name": "lastName",
+                                            "type": "String"
+                                        },
+                                        "sink": {
+                                            "name": "lastName",
+                                            "type": "String"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "inputs": [
+                            {
+                                "referenceName": "Source_dbo_Employees",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ],
+                        "outputs": [
+                            {
+                                "referenceName": "Target_Stage_Employees",
+                                "type": "DatasetReference",
+                                "parameters": {}
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Merge Stage to Dimension",
+                        "type": "SqlServerStoredProcedure",
+                        "dependsOn": [
+                            {
+                                "activity": "Copy Data From Source to Stage",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "storedProcedureName": "[[dim].[Load_Employee]"
+                        },
+                        "linkedServiceName": {
+                            "referenceName": "TargetDatabase",
+                            "type": "LinkedServiceReference"
+                        }
+                    },
+                    {
+                        "name": "Log Success - Copy Data",
+                        "type": "SqlServerStoredProcedure",
+                        "dependsOn": [
+                            {
+                                "activity": "Copy Data From Source to Stage",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "storedProcedureName": "[[Audit].[InsertOperationsEventLog]",
+                            "storedProcedureParameters": {
+                                "ErrorMessage": {
+                                    "value": null,
+                                    "type": "String"
+                                },
+                                "ErrorNumber": {
+                                    "value": null,
+                                    "type": "Int32"
+                                },
+                                "EventState": {
+                                    "value": "Success",
+                                    "type": "String"
+                                },
+                                "SourceName": {
+                                    "value": "Merge Source Employees to Target Employees",
+                                    "type": "String"
+                                },
+                                "SourceType": {
+                                    "value": "Data Factory Pipeline",
+                                    "type": "String"
+                                },
+                                "StatusMessage": {
+                                    "value": "Finished Copy From Source To Stage",
+                                    "type": "String"
+                                }
+                            }
+                        },
+                        "linkedServiceName": {
+                            "referenceName": "TargetDatabase",
+                            "type": "LinkedServiceReference"
+                        }
+                    },
+                    {
+                        "name": "Log Error - Merge to Dimension",
+                        "type": "SqlServerStoredProcedure",
+                        "dependsOn": [
+                            {
+                                "activity": "Merge Stage to Dimension",
+                                "dependencyConditions": [
+                                    "Failed"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "storedProcedureName": "[[Audit].[InsertOperationsEventLog]",
+                            "storedProcedureParameters": {
+                                "ErrorMessage": {
+                                    "value": {
+                                        "value": "@activity('Merge Stage to Dimension').output",
+                                        "type": "Expression"
+                                    },
+                                    "type": "String"
+                                },
+                                "ErrorNumber": {
+                                    "value": null,
+                                    "type": "Int32"
+                                },
+                                "EventState": {
+                                    "value": "Success",
+                                    "type": "String"
+                                },
+                                "SourceName": {
+                                    "value": "Merge Source Employees to Target Employees",
+                                    "type": "String"
+                                },
+                                "SourceType": {
+                                    "value": "Data Factory Pipeline",
+                                    "type": "String"
+                                },
+                                "StatusMessage": {
+                                    "value": "Finished Employees Sync",
+                                    "type": "String"
+                                }
+                            }
+                        },
+                        "linkedServiceName": {
+                            "referenceName": "TargetDatabase",
+                            "type": "LinkedServiceReference"
+                        }
+                    },
+                    {
+                        "name": "Log Success - Merge to Dimension",
+                        "type": "SqlServerStoredProcedure",
+                        "dependsOn": [
+                            {
+                                "activity": "Merge Stage to Dimension",
+                                "dependencyConditions": [
+                                    "Succeeded"
+                                ]
+                            }
+                        ],
+                        "policy": {
+                            "timeout": "7.00:00:00",
+                            "retry": 0,
+                            "retryIntervalInSeconds": 30,
+                            "secureOutput": false,
+                            "secureInput": false
+                        },
+                        "userProperties": [],
+                        "typeProperties": {
+                            "storedProcedureName": "[[Audit].[InsertOperationsEventLog]",
+                            "storedProcedureParameters": {
+                                "ErrorMessage": {
+                                    "value": null,
+                                    "type": "String"
+                                },
+                                "ErrorNumber": {
+                                    "value": null,
+                                    "type": "Int32"
+                                },
+                                "EventState": {
+                                    "value": "Success",
+                                    "type": "String"
+                                },
+                                "SourceName": {
+                                    "value": "Merge Source Employees to Target Employees",
+                                    "type": "String"
+                                },
+                                "SourceType": {
+                                    "value": "Data Factory Pipeline",
+                                    "type": "String"
+                                },
+                                "StatusMessage": {
+                                    "value": "Finished Merge to Dimension",
+                                    "type": "String"
+                                }
+                            }
+                        },
+                        "linkedServiceName": {
+                            "referenceName": "TargetDatabase",
+                            "type": "LinkedServiceReference"
+                        }
+                    }
+                ],
+                "annotations": []
+            },
+            "dependsOn": [
+                "[concat(variables('factoryId'), '/linkedServices/TargetDatabase')]",
+                "[concat(variables('factoryId'), '/datasets/Source_dbo_Employees')]",
+                "[concat(variables('factoryId'), '/datasets/Target_Stage_Employees')]"
+            ]
+        }
+    ]
+}

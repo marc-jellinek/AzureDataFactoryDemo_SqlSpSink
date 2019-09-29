@@ -1,0 +1,1 @@
+Get-AzSqlServerServiceObjective -location eastus
