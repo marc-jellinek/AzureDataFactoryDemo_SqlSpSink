@@ -1,7 +1,6 @@
 -- don't forget to connect to the target database
-
 ALTER PROCEDURE dim.Load_Employee
-    --@Employee as dim.EmployeeType READONLY, no longer needed, read from table Stage.Employee
+    --@Employee as dim.EmployeeType READONLY
 AS
 BEGIN
     DECLARE @ErrorNumber int = NULL;
@@ -11,7 +10,8 @@ BEGIN
 
     BEGIN TRY
         SELECT  @SourceRowCount = ISNULL(COUNT(*), 0)
-        FROM    Stage.Employees
+        --FROM    @Employee
+        FROM    Stage.Employees 
 
         SET @StatusMessage = 'Starting load of dim.Employee.  Source rowcount: ' + CONVERT(varchar(8000), @SourceRowCount)
 

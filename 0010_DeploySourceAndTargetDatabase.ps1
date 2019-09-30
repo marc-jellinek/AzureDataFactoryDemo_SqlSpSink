@@ -2,6 +2,5 @@ $deployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupNam
 
 $deployment | Out-Host
 
-$sourceDatabaseServerName = $deployment.Outputs.sourceDatabaseServerName
-$targetDatabaseServerName = $deployment.Outputs.targetDatabaseServerName 
-
+$sourceDatabaseServerName = $deployment.Outputs.sourceDatabaseServerName.Value
+$targetDatabaseServerName = $deployment.Outputs.targetDatabaseServerName.Value

@@ -123,7 +123,7 @@ BEGIN
         ON      TARGET.SourceKey = SOURCE.id 
         WHEN MATCHED AND
             (   SOURCE.firstName <> TARGET.firstName OR
-        SOURCE.lastName <> TARGET.lastName
+                SOURCE.lastName <> TARGET.lastName
             )
         THEN UPDATE SET
                     target.firstName = source.firstName, 
