@@ -246,7 +246,9 @@ The choice is yours.
 
 If you are using a free Azure subscription or a subscription through your Visual Studio subscription, you can get your credit balance here: https://docs.microsoft.com/en-us/azure/billing/billing-mca-check-azure-credits-balance
 
-Another good thing to do is show you how to monitor the progress of the script.  Go into the Azure Portal, negotiate to your resource group and click on SourceDatabase.  Give it a few minutes and you'll see DTU utilization pinned at 100%.  This is referred to as throttling, which is generally bad.  I prefer to think of it as I'm using 100% of the capability that I'm paying for.  This means there will be such a load on the SourceDatabase that it may not be responsive to other users of the database.  Consider this when sizing or scaling your production databases.  For the sake of a demo, we're ok.
+Now we can load 500000 rows of test data into the source database.  Execute 0070_500KRowsOfSourceData.sql
+
+Another good thing to do is show you how to monitor the progress of the script.  Go into the Azure Portal, negotiate to your resource group and click on SourceDatabase.  If you didn't scale the databases to an S12 and are currently an S0, give it a few minutes and you'll see DTU utilization pinned at 100%.  This is referred to as throttling, which is generally bad.  I prefer to think of it as I'm using 100% of the capability that I'm paying for.  This means there will be such a load on the SourceDatabase that it may not be responsive to other users of the database.  Consider this when sizing or scaling your production databases.  For the sake of a demo, we're ok.
 
 ![Monitor Source Database](./graphics/0150_MonitorSourceDatabase.png)
 
@@ -285,7 +287,7 @@ The good news is that MERGing into a temporal table is a good way to generate SC
 
 I did a quick pivot, went heads down and recoded a truncate/reload solution and got my fellow developers unblocked.  We've all been there.  
 
-We maintain a stage table that holds data from the source table.  The source table and the stage table were kept in sync by TRUNCATE and reload process that runs prior to the merge.  This allows the data loading part of the process to run in parallel.  
+The solution was to maintain a stage table that holds data from the source table.  The source table and the stage table were kept in sync by TRUNCATE and reload process that runs prior to the merge.  This allows the data loading part of the process to run in parallel.  
 
 After data loading completes, we then run a MERGE against the stage table and dim.Employee.  This allows us to capture changes in values from day-to-day in the history table enabled by working with a complete dataset.  It only required a minor edit of the dbo.Load_Employee stored procedure
 
