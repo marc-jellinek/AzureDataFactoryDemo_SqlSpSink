@@ -6,10 +6,10 @@
             "value": "AzureDataFactoryDemo-SqlSpSink-Data-Factory"
         },
         "SourceDatabase_connectionString": {
-            "value": "Server=tcp:bad3e393-668d-44a0-8812-afe482984bfb.database.windows.net,1433;Initial Catalog=SourceDatabase;Persist Security Info=False;User ID=demoadmin;Password=$#5Si55W^#qo;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+            "value": "Server=tcp:080c193c-6dec-4c44-86d2-74f93ee4be6b.database.windows.net,1433;Initial Catalog=SourceDatabase;Persist Security Info=False;User ID=demoadmin;Password=$#5Si55W^#qo;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
         },
         "TargetDatabase_connectionString": {
-            "value": "Server=tcp:24717057-65c4-4ecb-b49a-203f511d2915.database.windows.net,1433;Initial Catalog=TargetDatabase;Persist Security Info=False;User ID=demoadmin;Password=$#5Si55W^#qo;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+            "value": "Server=tcp:bd6c8229-887e-4ae4-9147-a5508faa78c0.database.windows.net,1433;Initial Catalog=TargetDatabase;Persist Security Info=False;User ID=demoadmin;Password=$#5Si55W^#qo;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
         } 
     }
 }

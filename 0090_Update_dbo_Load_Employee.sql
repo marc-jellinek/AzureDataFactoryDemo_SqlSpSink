@@ -1,5 +1,5 @@
 -- don't forget to connect to the target database
-ALTER PROCEDURE dim.Load_Employee
+CREATE PROCEDURE dim.Load_Employee
     --@Employee as dim.EmployeeType READONLY
 AS
 BEGIN

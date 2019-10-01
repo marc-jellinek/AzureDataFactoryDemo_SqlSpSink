@@ -27,13 +27,6 @@ DROP SCHEMA dim;
 GO
 
 DROP TABLE IF EXISTS Audit.OperationsEventLog;
-DROP PROCEDURE IF EXISTS Audit.InsertOperationsEventLog;
-GO
-
-DROP SCHEMA Audit;
-GO
-
-CREATE SCHEMA Audit;
 GO
 
 CREATE TABLE Audit.OperationsEventLog(
