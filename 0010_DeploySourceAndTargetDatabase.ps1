@@ -1,4 +1,4 @@
-$deployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile ".\0010_DeploySourceAndTargetDatabase.json"
+$deployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateFile ".\0010_DeploySourceAndTargetDatabase.json" -TemplateParameterFile "./0010_DeploySourceAndTargetDatabase.parameters.json"
 
 $deployment | Out-Host
 

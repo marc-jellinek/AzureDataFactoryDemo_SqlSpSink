@@ -9,13 +9,21 @@
         "targetServerName": {
             "type": "string",
             "defaultValue": "[newGuid()]"
+        }, 
+        "adminUser": {
+            "type": "string", 
+            "defaultValue": "demoadmin"
+        }, 
+        "adminPassword": {
+            "type": "secureString", 
+            "defaultValue": ""
         }
     },
     "variables": {
         "sourceDatabaseServerName": "[parameters('sourceServerName')]",
         "targetDatabaseServerName": "[parameters('targetServerName')]",
-        "adminUser": "demoadmin",
-        "adminPassword": "$#5Si55W^#qo"
+        "adminUser": "[parameters('adminUser')]",
+        "adminPassword": "[parameters('adminPassword')]"
     },
     "resources": [
         {
