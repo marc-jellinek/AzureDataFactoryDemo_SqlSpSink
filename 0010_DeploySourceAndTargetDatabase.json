@@ -26,6 +26,15 @@
         "adminPassword": "[parameters('adminPassword')]"
     },
     "resources": [
+        {  
+            "name":"AzureDataFactoryDemo-SqlSpSink-Data-Factory",
+            "apiVersion":"2018-06-01",
+            "type":"Microsoft.DataFactory/factories",
+            "location":"[resourceGroup().location]",
+            "identity":{  
+                "type":"SystemAssigned"
+            }
+        },        
         {
             "type": "Microsoft.Sql/servers",
             "name": "[variables('sourceDatabaseServerName')]",
