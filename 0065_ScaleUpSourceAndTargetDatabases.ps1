@@ -1,2 +1,2 @@
-Set-AzSqlDatabase -ResourceGroupName $resourceGroupName -DatabaseName "SourceDatabase" -RequestedServiceObjectiveName S7 -ServerName $sourceDatabaseServerName
-Set-AzSqlDatabase -ResourceGroupName $resourceGroupName -DatabaseName "TargetDatabase" -RequestedServiceObjectiveName S7 -ServerName $targetDatabaseServerName
+Set-AzSqlDatabase -ResourceGroupName $resourceGroupName -DatabaseName "SourceDatabase" -RequestedServiceObjectiveName S3 -ServerName $sourceDatabaseServerName
+Set-AzSqlDatabase -ResourceGroupName $resourceGroupName -DatabaseName "TargetDatabase" -RequestedServiceObjectiveName S3 -ServerName $targetDatabaseServerName

@@ -106,7 +106,7 @@ BEGIN
 
     BEGIN TRY
         SELECT @SourceRowCount = ISNULL(COUNT(*), 0)
-    FROM @Employee 
+        FROM @Employee 
 
         SET @StatusMessage = 'Starting load of dim.Employee.  Source rowcount: ' + CONVERT(varchar(8000), @SourceRowCount)
 

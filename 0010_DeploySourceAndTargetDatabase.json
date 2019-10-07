@@ -15,7 +15,7 @@
             "defaultValue": "demoadmin"
         }, 
         "adminPassword": {
-            "type": "secureString", 
+            "type": "securestring", 
             "defaultValue": ""
         }
     },
