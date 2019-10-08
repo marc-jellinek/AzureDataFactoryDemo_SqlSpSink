@@ -329,6 +329,19 @@ Pay special attention to OpsSK2, where we see that we are dealing with the compl
 
 A bonus, the truncate/reload process was actually much faster than importing through a stored procedure sink.  Faster means money saved.  Executing in half the time means half the cost.  Performance tuning just became a profitable activity.
 
+An last, we are going to confirm our SCD4 functionality by making changes in the source database.  Open file 0010_UpdateSourceDatabaseAgain.sql and run it against the source database.
+
+Trigger the data factory pipeline one last time.
+
+When the pipeline is complete, open 0050_QueryTargetTable.sql
+
+Confirm:
+<li>500000 rows in Target.dim.Employee
+<li>2 rows in Target.dim.Employee_History (SourceKeys 512, 1024)
+<li>6 new rows (12 total) in Target.Audit.OperationsEventLog
+
+We have confirmed that we're working as expected.
+
 Let's compare the approaches of loading SQL Server through a stored procedure sync vs a truncate and reload process:
 
 <li>Both solutions require moving the entire source dataset across a network
@@ -359,6 +372,7 @@ What parts of this demo are NOT reusable:
 <li>Never deploy a database with wide-open firewall rules unless there is a very compelling reason for doing so.
 <li>While the use of ARM parameter files to supply connection strings, usernames, passwords and other credentials is a best practice, these values should not be provided in plaintext.  They would be visible to anyone with access to the source control repository.  Instead use Azure Key Vault to store the sensitive information and reference the Key Vault secrets in the parameter file.
 
+Don't forget to scale down your databases, or just delete the resource group and everything we've deployed goes away.  
 
 Appendix:
 Interesting Links:
