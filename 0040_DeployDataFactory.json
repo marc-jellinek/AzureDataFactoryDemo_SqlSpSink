@@ -231,7 +231,7 @@
                             "storedProcedureParameters": {
                                 "ErrorMessage": {
                                     "value": {
-                                        "value": "@activity('Merge Source Employee  to Target Employee').output",
+                                        "value": "@activity('Merge Source Employee  to Target Employee').error.message",
                                         "type": "Expression"
                                     },
                                     "type": "String"
