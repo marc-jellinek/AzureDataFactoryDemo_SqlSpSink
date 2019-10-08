@@ -266,7 +266,7 @@
                             "storedProcedureParameters": {
                                 "ErrorMessage": {
                                     "value": {
-                                        "value": "@activity('Copy Data From Source to Stage').output",
+                                        "value": "@activity('Copy Data From Source to Stage').error.message",
                                         "type": "Expression"
                                     },
                                     "type": "String"
@@ -482,7 +482,7 @@
                             "storedProcedureParameters": {
                                 "ErrorMessage": {
                                     "value": {
-                                        "value": "@activity('Merge Stage to Dimension').output",
+                                        "value": "@activity('Merge Stage to Dimension').error.message",
                                         "type": "Expression"
                                     },
                                     "type": "String"

@@ -18,9 +18,9 @@ I've kept this demonstration as lean as possible in order to keep associated cos
 
 In this demo, I create an Azure Resource Group (no cost), two Azure SQL Servers (no cost) each hosting an Azure SQL Database (cost).  Each database is hosted on its own server.  One database is designated the source, the other, the sink or target.  Both are Standard tier Single Databases S0 SKU deployed to the East US region  You can deploy to any region that supports Azure SQL Database  https://azure.microsoft.com/en-us/global-infrastructure/services/?products=sql-database.  
 
-If I leave the databases deployed they will cost me $29.44 per month or $0.04 per hour.  I give you a cleanup script that will drop all of the Azure resources deployed with this demo.  I regularly deploy this demo, work with it, then drop it, keeping my Azure charges to a minimum.
+If I leave the databases deployed they will cost me $0.02 per hour each.  I give you a cleanup script that will drop all of the Azure resources deployed with this demo.  I regularly deploy this demo, work with it, then drop it, keeping my Azure charges to a minimum.
 
-There is also an Azure Data Factory.  You pay for Data Factory by the thousands of activity runs times the number of Data Integration Unit-hours times $0.25.  I don't know what a Data Integration Unit is, but you can find out how many your pipeline consumed.  
+There is also an Azure Data Factory.  You pay for Data Factory by the thousands of activity runs times the number of Data Integration Unit-hours times $0.25.  I don't know what a Data Integration Unit is, but you can find out how many your pipeline consumed by looking at Copy Activity DIU Consumed.
 
 The last time I ran the merge pipeline, it consumed 4 Data Integration Units (see Copy Activity's .output.usedDataIntegrationUnits) and ran for 188 seconds (.output.copyDuration).  From this information we can calculate our charges.  188 seconds is 0.052 of an hour.  4 DIU * 0.052 * $0.25 = $0.052.  If I interpret that correctly, I get 1000 activity runs for $0.052.  
 
@@ -48,6 +48,7 @@ I've provided PowerShell scripts, SQL scripts, Azure Resource Manager templates 
 <li>0090_Update_dbo_Load_Employees.sql
 <li>0100_UpdateDataFactory.json
 <li>0100_UpdateDataFactory.ps1
+<li>9998_ScaleDownSourceAndTargetDatabases.ps1
 <li>9999_RemoveTargetResourceGroup.ps1
 
 Data will be loaded into dim.Employee in the target database using an Azure Data Factory pipeline.  The pipeline will use a Copy Activity where the source is the source database and the sink is a SQL Server stored procedure (dim.Load_Employee) that MERGEs the supplied data into dim.Employee on the target database.  Any changes are automatically recorded in dim.Employee_History, as is the nature of Temporal Tables.
@@ -77,7 +78,7 @@ In Visual Studio Code open the folder holding the code.
 ![Open Visual Studio Code](./graphics/0010_Open_Visual_Studio_Code.png)
 
 We're going to deploy the resource group that will hold all of our Azure resources. You will need the following information:
-<li>The name of the Azure subscription you will be deploying to (I use "Marc Jellinek - Visual Studio Enterprise")
+<li>The name of the Azure subscription you will be deploying to (I use "Free Trial")
 <li>The name of the new resource group you will be deploying to (I use "AzDataFactoryDemo_SqlSpSink") - must be a NEW resource group, do not use an existing resource group
 <li>The name of the location you will be deploying to (I use eastus).  Use a region closest to you for the most responsive experience.
 
@@ -87,7 +88,7 @@ Fill in the values for $subscriptionName, $resourceGroupName and $location.
 
 ![Deploy Target Resource Group](./graphics/0015_DeployTargetResourceGroup.png)
 
-Hit F5 to run.  The script will ask you to log into your Azure account, then create a new resource group with the name you gave.  Sometimes the login prompt for Azure hides behind another window.  If you don't see the login prompt, close active windows until you see it. 
+Hit F5 to run.  The script will ask you to log into your Azure account, then create a new resource group with the name you gave.  Sometimes the login prompt for Azure hides behind another window.  If you don't see the login prompt, minimize active windows until you see it. 
 
 If you use the name of a resource group that already exists, the script will tell you.  You must use a new resource group, do not use an existing one.  The cleanup script deletes the resource group you provide and we don't want any accidental deletions!
 
@@ -95,7 +96,7 @@ Log into the Azure Portal at https://portal.azure.com, select Resource Groups (o
 
 ![Create New Resource Group](./graphics/0030_Validate_Create_New_Resource_Group.png)
 
-Our next step is to deploy the source and target database servers and databases.  Open the file 0010_DeploySourceAndTargetDatabase.ps1 and hit F5.  This will deploy the ARM template stored in 0010_DeploySourceAndTargetDatabase.json.  This takes a bit of time, so be patient.  When I deploy this, it usually takes less than 5 minutes.
+Our next step is to deploy the source and target database servers and databases, as well as an empty instance of Azure Data Factory.  Open the file 0010_DeploySourceAndTargetDatabase.ps1 and hit F5.  This will deploy the ARM template stored in 0010_DeploySourceAndTargetDatabase.json.  This takes a bit of time, so be patient.  When I deploy this, it usually takes less than 5 minutes.
 
 ![Create Source and Target Database Servers and Databases](./graphics/0040_DeploySourceAndTargetDatabaseServers.png)
 
@@ -112,7 +113,7 @@ From within Visual Studio Code, hit F1 and type 'mssql' and select MS SQL: Conne
 
 ![Set Up Source and Target Database Connections](./graphics/0050_SetupDatabaseConnections.png)
 
-Copy-and-paste the sourceDatabaseConnectionString output by 0010_DeploySourceAndTargetDatabase.json.
+Copy-and-paste the sourceDatabaseServerName as output by 0010_DeploySourceAndTargetDatabase.json and append ".database.windows.net".
 
 Give the connection a profile name of "AzureDataFactoryDemo_SqlSpSink_SourceDatabase".
 
@@ -138,17 +139,13 @@ Setting up dim.Employee as a temporal table means the latest state of an Employe
 
 I'm using a stored procedure as the data sink so we can process the supplied data using a single MERGE statement.  Existing Employees will be updated, Employees supplied by the source that don't exist in dim.Employees are inserted and Employees that have been deleted from the source are also deleted from the dimension table.  A record of its existence will remain in dim.Employee_History.  See https://docs.microsoft.com/en-us/azure/data-factory/connector-sql-server#invoke-a-stored-procedure-from-a-sql-sink for details on using a stored procedure in a SQL Server sink in the Copy activity.
 
-Our last deployment step is to create the Data Factory that will copy data from our source database and merge it into our target database.  Open the file 0035_CreateDataFactory.ps1 and hit F5.  This takes a couple of minutes to run.
+Our last deployment step is to create the Data Factory that will copy data from our source database and merge it into our target database.  
 
-Go back into the Azure Portal, select your resource group and hit refresh.  You should see the data factory named AzureDataFactoryDemo-SqlSpSink-Data-Factory
-
-![Confirm Data Factory Creation](./graphics/0090_ConfirmDataFactoryCreation.png)
-
-In the Azure Portal, click on the Data Factory, then click on Author & Monitor.  When creating a new Data Factory, the first time I go into Author & Monitor, I'll see "Loading..." for a bit.  If you see "Loading..." for more than a few minutes, log out of all your Azure accounts.  I'm often logged in to multiple accounts simultaneously, usually my personal account, my employer's account and my customer's account.  This includes logins to outlook.com (my personal email) and portal.office.com (my employer email and my customer's email).  Log back in using only your the account that has access to your Azure subscription.  That often clears up the problem.  You should see a Data Factory that has no Connections, no Datasets and no Pipelines.  Click on the Pencil in the upper left of the screen:
+In the Azure Portal, click on the Data Factory, then click on Author & Monitor.  When creating a new Data Factory, the first time I go into Author & Monitor, I'll see "Loading..." for a bit.  If you see "Loading..." for more than a minute or so, log out of all your Azure accounts.  I'm often logged in to multiple accounts simultaneously, usually my personal account, my employer's account and my customer's account.  This includes logins to outlook.com (my personal email) and portal.office.com (my employer email and my customer's email).  Log back in using only your the account that has access to your Azure subscription.  That often clears up the problem.  You should see a Data Factory that has no Connections, no Datasets and no Pipelines.  Click on the Pencil in the upper left of the screen:
 
 ![Show empty data factory](./graphics/0085_ShowEmptyDataFactory.png)
 
-Now that we've created the Data Factory, we will populate it with all the elements required to pull data from the source database and merge it into the destination database.
+We will populate the Data Factory with all the elements required to pull data from the source database and merge it into the destination database.
 
 We're going to have to tell the data factory the server names for the target and source database.  Do this by editing the parameters file associated with the data factory pipeline deployment.  Remember I asked you to copy-and-paste the output connection strings when the databases were created?  You are going to need them now.
 
@@ -158,9 +155,7 @@ Open the file 0040_DeployDataFactory.parameters.json.  Edit the SourceDatabase_c
 
 Make sure you save the parameters file.  Now open 0040_DeployDataFactory.ps1 and hit F5 to run it.
 
-When it completes, go back to the Data Factory and click refresh.
-
-You will see two datasets and one pipeline
+When it completes, go back to the Data Factory and click refresh.  You will see two datasets and one pipeline.
 
 ![Populated Data Factory](./graphics/0110_PopulatedDataFactory.png)
 
@@ -172,11 +167,11 @@ Now before we move on, let's take stock of where we are:
 <li>We are starting with our target database empty
 <li>Data Factory and SQL Server operations are logged to a table in the Target database called Audit.OperationsEventLog
 
-Go back to the Data Factory portal and open up the pipeline "Merge Source Employees to Target Employee".  Click on the Debug button
+Go back to the Data Factory portal and open up the pipeline "Merge Source Employees to Target Employee".  Trigger the pipeline by clicking on "Add Trigger", then select "Trigger Now"
 
 ![Merge Pipeline Trigger Now](./graphics/0120_MergePipeline_TriggerNow.png)
 
-After a few minutes or so, this is what you will see:
+Go to the monitor (orange dial below the pencil on the left side) to monitor the progress of the pipeline execution.  After a few minutes or so, this is what you will see:
 
 ![Pipeline Completed Successfully](./graphics/0130_PipelineCompletedSuccessfully.png)
 
@@ -200,7 +195,7 @@ Now let's test out the Slowly Changing Dimension Type 4 (wow, that sounds so off
 
 Just hit Ctrl-Alt-E to execute.
 
-Go back to the data factory pipeline and kick off the pipeline using the Debug button.  When the pipeline completes successfully, go back into Visual Studio Code.
+Go back to the data factory pipeline and trigger the pipeline.  When the pipeline completes successfully, go back into Visual Studio Code.
 
 Go back to the file 0050_QueryTargetTable.sql and re-run the query using Ctrl-Alt-E.
 
@@ -220,12 +215,6 @@ I got a clue when I looked at the operations event log.
 
 We can duplicate this problem by adding 500,000 rows to our source data.  Open up 0070_500KRowsOfSourceData.sql and execute. This is going to take a while, especially on a Basic-tier database.  Expect it to run for about 5 minutes.
 
-This is a good place to pitch the scalability, both up and down, of Azure SQL Database.  We are able to scale up to a more performant (actually less restricted) option within the Service Tier, say from an S0 to an S12, while we're inputting all this data.  When loading is complete, drop back down to an S0.  (https://azure.microsoft.com/en-us/pricing/details/sql-database/single/).  This is an attractive option when hit with one-time events like large data loads.  The cost for processing can be calculated... which managers love.  "How much is this going to cost?" is no longer a question to be afraid of.  In our case, our source and target databases will cost us roughly $30 per month or $0.04 per hour.  See https://docs.microsoft.com/en-us/azure/sql-database/sql-database-single-database-scale for database scaling.
-
-If we scale our databases to an S12, they will cost approximately $6 each.  We can go from 10 DTU to 3000 DTU for about $12 per hour.  
-
-0065_ScaleUpSourceAndTargetDatasbases.ps1
-
 Do we want to scale up our source and target databases or not?
 
 You have a choice to make.  
@@ -244,11 +233,14 @@ If you value time over money, run the script that will scale our databases from 
 
 The choice is yours.
 
-If you are using a free Azure subscription or a subscription through your Visual Studio subscription, you can get your credit balance here: https://docs.microsoft.com/en-us/azure/billing/billing-mca-check-azure-credits-balance
+If you are using a free Azure subscription or a subscription through your Visual Studio subscription, you can get your credit balance here: https://docs.microsoft.com/en-us/azure/billing/billing-mca-check-azure-credits-balance.  
+If you are using the Free Trial subscription, you are limited to S1 anyway... it's not worth the time to scale from an S0 to an S1.
 
-Now we can load 500000 rows of test data into the source database.  Execute 0070_500KRowsOfSourceData.sql
+But if you have the option of scaling up, see the file "0065_ScaleUpSourceAndTargetDatabases.ps1" and "9998_ScaleDownSourceAndTargetDatabases.ps1"
 
-Another good thing to do is show you how to monitor the progress of the script.  Go into the Azure Portal, negotiate to your resource group and click on SourceDatabase.  If you didn't scale the databases to an S12 and are currently an S0, give it a few minutes and you'll see DTU utilization pinned at 100%.  This is referred to as throttling, which is generally bad.  I prefer to think of it as I'm using 100% of the capability that I'm paying for.  This means there will be such a load on the SourceDatabase that it may not be responsive to other users of the database.  Consider this when sizing or scaling your production databases.  For the sake of a demo, we're ok.
+Back to debugging:  We are going to load 500000 rows of test data into the source database.  Execute 0070_500KRowsOfSourceData.sql
+
+Another good thing to do is show you how to monitor the progress of the script.  Go into the Azure Portal, negotiate to your resource group and click on SourceDatabase.  Give it a few minutes and you'll see DTU utilization pinned at 100%.  This is referred to as throttling, which is generally bad.  I prefer to think of it as I'm using 100% of the capability that I'm paying for.  This means there will be such a load on the SourceDatabase that it may not be responsive to other users of the database.  Consider this when sizing or scaling your production databases.  For the sake of a demo, we're ok.
 
 ![Monitor Source Database](./graphics/0150_MonitorSourceDatabase.png)
 
@@ -261,27 +253,25 @@ When the sync is complete, go back to 0050_QueryTargetTable.sql.  Connect to the
 <li>Confirm that Audit.OperationsEventLog shows the successful running of the sync process
 
 Now let's see:
-20651 rows in dim.Employee - I expect to have 499999 rows
+20652 rows in dim.Employee - I expect to have 499999 rows
 479352 rows in dim.Employee_History - I expect to have 2 rows (no net-new rows)
 20 rows in Audit.OperationsEventLog
 
-(these rowcounts will vary depending on the non-deterministic whims of the Azure gods.)
+(these rowcounts are very consistent, something deterministic is going on here.)
 
-Here's the key giveaway: Looking at the OpsSK's values (10, 12, 14) we can see that the stored procedure [dbo].[Load_Employees] was called multiple times, each time supplying approximately 100K rows of data at a time.
+Here's the key giveaway: Looking at the OpsSK's values (10, 12, 14, 16, 18) we can see that the stored procedure [dbo].[Load_Employees] was called multiple times, each time supplying approximately 100K rows of data at a time.
 
 ![Check Operations Event Log](./graphics/0160_CheckOperationsEventLog.png)
 
 What was going on?  Rather than supplying all the source data in dbo.Load_Employee, the stored procedure was called multiple times with batches of the source data.  The way the MERGE was written (look inside dbo.Load_Employee or in file 0030_DeployTargetDatabaseObjects.sql), if a row exists in the target, but does not exists in the source, that row is deleted from the target.  Since there were lots of rows that didn't exist in what the stored proc saw as the source, it deleted rows in the target.
 
-The parallel calls to dbo.Load_Employee with batches of source data makes sense when its understood that Data Factory is based on Azure Databricks, a Spark-based analytics platform.  Data Factory generates Scala which is executed on Databricks.  Spark's key strength is the ability to scale out compute as needed, then execute in parallel.  smh.  Duh.  
-
 That's where I found out that the solution I came up with wouldn't work.
 
-When I tested things out using a 50-row source table, the rowcount or dataload or whatever was small enough that it fit into one batch.  At some point between 100 and 500,000 rows a threshhold was crossed and Data Factory started breaking up the source data into batches of approximately 100K rows (batches is probably the wrong word) for parallel load and execution.
+When I tested things out using a 100-row source table, the rowcount or dataload or whatever was small enough that it fit into one batch.  At some point between 100 and 500,000 rows a threshhold was crossed and Data Factory started breaking up the source data into batches of approximately 100K rows (batches is probably the wrong word) for serial load and execution.
 
 I can't find this behavior documented anywhere.  There is an explicit warning that invoking a stored procedure processes the data row by row instead of by using a bulk operation, which Microsoft doesn't recommend for large-scale copy.  Maybe this behavior is what they meant by "row by row"? https://docs.microsoft.com/en-us/azure/data-factory/connector-sql-server#invoke-a-stored-procedure-from-a-sql-sink
 
-This is not a bug.  We want Data Factory to run things in parallel.  This is the stubbed toe.  This is the mistake you only make once.  This is one that you remember.  This is learning Azure Data Factory the Hard Way.
+This is not a bug.  This is the stubbed toe.  This is the mistake you only make once.  This is one that you remember.  This is learning Azure Data Factory the Hard Way.
 
 The good news is that MERGing into a temporal table is a good way to generate SCD4 dimension tables.  That part works!  Hooray for us!  We just have to supply the MERGE statement with a complete set of source data.
 
@@ -291,7 +281,66 @@ The solution was to maintain a stage table that holds data from the source table
 
 After data loading completes, we then run a MERGE against the stage table and dim.Employee.  This allows us to capture changes in values from day-to-day in the history table enabled by working with a complete dataset.  It only required a minor edit of the dbo.Load_Employee stored procedure
 
-A bonus, the truncate/reload process was actually much faster than importing through a stored procedure sink.
+So let's finish out a solution that will work over the long term:
+
+We need to accomplish the following tasks:
+<li>Create a stage table in the target database that mirrors the structure of the source data
+<li>Modify the merge procedure to read from the stage table instead of a passed parameter
+<li>Modify the Data Factory to copy from source to stage, then run the merge procedure
+
+Open file and run 0080_CreateStageTableInTarget.sql. This will create the stage table and reinitialize dim.Employee, dim.Employee_History and Audit.OperationsEventLog.
+
+Open file and run 0090_Update_dbo_Load_Employee.sql.  Review the comments for the modifications made.  The primary change is to read from Stage.Employee instead of a passed parameter @Employees.
+
+Open file and run 0100_UpdateDataFactory.ps1.  This will deploy the ARM template 0100_UpdateDataFactory.json.
+
+The following modifications were made to the data factory:
+<li>Created dataset Stage_Employees, which points at Stage.Employee within the target database
+<li>Modified pipeline Merge Source Employees to Target Employees.  
+<li>First calls a Copy Activity that truncates the target and reloads it from the source
+<li>After the Copy Activity completes, call the modified stored procedure to merge the data into dim.Employee
+
+After the updated data factory is deployed, go back into the Data Factory Portal.  Click refresh and open the pipeline.  
+
+See how every step is logged to the target database.  This isn't strictly necessary since Azure Data Factory already logs everything it does.  I'm not sure how to get at the logs using the Logs Analytic Workspace, but watch this space.  Azure Data Factory Analytics https://azure.microsoft.com/en-us/blog/monitor-azure-data-factory-pipelines-using-operations-management-suite/
+
+The pipeline now runs a Copy Activity where the source is Source.dbo.Employees and the sink is Target.Stage.Employees.  If you click into the Sink of the copy activity, you'll see that the Pre-Copy Script is a TRUNCATE command.  The copy activity will clean out Stage.Employee then copy the entire contents of Source.dbo.Employees to Target.Stage.Employees.  
+
+After the copy command completes, a Stored Procedure activity runs Target.dbo.Load_Employees, which merges Stage.Employees into dim.Employee.  Since dim.Employee is a temporal table, all changes will be recorded to dim.Employee_History.  This is a simple example of the ELT (Extract Load Transform) design pattern.
+
+This is a good place to stop and take measure of where we are:
+
+<li>There are 500000 rows of data in Source.dbo.Employees
+<li>There are zero rows in Target.dim.Employees
+<li>There are zero rows in Target.dim.Employees_History
+<li>There are zero rows in Target.Audit.OperationsEventLog
+
+Trigger the data factory pipeline "Merge Source Employees to Target Employees".  We expect to wind up with:
+<li>500000 rows in Target.dim.Employee
+<li>0 rows in Target.dim.Employee_History
+<li>6 rows in Target.Audit.OperationsEventLog
+
+Go back to 0050_QueryTargetTable.sql and confirm:
+<li>500000 rows in Target.dim.Employee
+<li>0 rows in Target.dim.Employee_History
+<li>6 rows in Target.Audit.OperationsEventLog
+
+Pay special attention to OpsSK2, where we see that we are dealing with the complete data set.
+
+A bonus, the truncate/reload process was actually much faster than importing through a stored procedure sink.  Faster means money saved.  Executing in half the time means half the cost.  Performance tuning just became a profitable activity.
+
+An last, we are going to confirm our SCD4 functionality by making changes in the source database.  Open file 0010_UpdateSourceDatabaseAgain.sql and run it against the source database.
+
+Trigger the data factory pipeline one last time.
+
+When the pipeline is complete, open 0050_QueryTargetTable.sql
+
+Confirm:
+<li>500000 rows in Target.dim.Employee
+<li>2 rows in Target.dim.Employee_History (SourceKeys 512, 1024)
+<li>6 new rows (12 total) in Target.Audit.OperationsEventLog
+
+We have confirmed that we're working as expected.
 
 Let's compare the approaches of loading SQL Server through a stored procedure sync vs a truncate and reload process:
 
@@ -323,43 +372,12 @@ What parts of this demo are NOT reusable:
 <li>Never deploy a database with wide-open firewall rules unless there is a very compelling reason for doing so.
 <li>While the use of ARM parameter files to supply connection strings, usernames, passwords and other credentials is a best practice, these values should not be provided in plaintext.  They would be visible to anyone with access to the source control repository.  Instead use Azure Key Vault to store the sensitive information and reference the Key Vault secrets in the parameter file.
 
-So let's finish out a solution that will work over the long term:
-
-We need to accomplish the following tasks:
-<li>Create a stage table in the target database that mirrors the structure of the source data
-<li>Modify the merge procedure to read from the stage table instead of a passed parameter
-<li>Modify the Data Factory to copy from source to stage, then run the merge procedure
-
-Open file and run 0080_CreateStageTableInTarget.sql. This will create the stage table and reinitialize dim.Employee, dim.Employee_History and Audit.OperationsEventLog.
-
-Open file and run 0090_Update_dbo_Load_Employee.sql.  Review the comments for the modifications made.  The primary change is to read from Stage.Employee instead of a passed parameter.
-
-Open file and run 0100_UpdateDataFactory.ps1.  This will deploy the ARM template 0100_UpdateDataFactory.json.
-
-The following modifications were made to the data factory:
-<li>Created dataset Stage_Employees, which points at Stage.Employee within the target database
-<li>Modified pipeline Merge Source Employees to Target Employees.  
-<li>First calls a Copy Activity that truncates the target and reloads it from the source
-<li>After the Copy Activity completes, call the modified stored procedure to merge the data into dim.Employee
-
-After the updated data factory is deployed, go back into the Data Factory Portal.  Click refresh and open the pipeline.  
-
-See how every step is logged to the target database.  This isn't strictly necessary since Azure Data Factory already logs everything it does.  I'm not sure how to get at the logs using the Logs Analytic Workspace, but watch this space.  
-
-The pipeline now runs a Copy Activity where the source is Source.dbo.Employees and the sink is Target.Stage.Employees.  If you click into the Sink of the copy activity, you'll see that the Pre-Copy Script is a TRUNCATE command.  The copy activity will clean out Stage.Employee then copy the entire contents of Source.dbo.Employees to Target.Stage.Employees.  
-
-After the copy command completes, a Stored Procedure activity runs Target.dbo.Load_Employees, which merges Stage.Employees into dim.Employee.  Since dim.Employee is a temporal table, all changes will be recorded to dim.Employee_History.  This is a simple example of the ELT (Extract Load Transform) design pattern.
-
-This is a good place to stop and take measure of where we are:
-
-<li>There are 500000 rows of data in Source.dbo.Employees
-<li>There are zero rows in Target.dim.Employees
-<li>There are zero rows in Target.dim.Employees_History
-<li>There are zero rows in Target.Audit.OperationsEventLog
-
-*****
+Don't forget to scale down your databases, or just delete the resource group and everything we've deployed goes away.  
 
 Appendix:
+Interesting Links:
+https://docs.microsoft.com/en-us/sql/relational-databases/databases/tempdb-database?view=sql-server-2017#tempdb-database-in-sql-database
+
 
 Files Provided by this Demo:
 
