@@ -4,3 +4,4 @@ $deployment | Out-Host
 
 $sourceDatabaseServerName = $deployment.Outputs.sourceDatabaseServerName.Value
 $targetDatabaseServerName = $deployment.Outputs.targetDatabaseServerName.Value
+$dataFactoryName = $deployment.Outputs.dataFactoryName.Value 

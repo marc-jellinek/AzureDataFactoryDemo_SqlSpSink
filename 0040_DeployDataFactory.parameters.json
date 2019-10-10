@@ -3,13 +3,13 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "factoryName": {
-            "value": "AzureDataFactoryDemo-SqlSpSink-Data-Factory"
+            "value": "Data-Factory-ce246355-f84e-4f6c-953d-9211100368c3"
         },
         "SourceDatabase_connectionString": {
-            "value": "Server=tcp:b221b574-c443-4486-a3cf-a64d2e608d28.database.windows.net,1433;Initial Catalog=SourceDatabase;Persist Security Info=False;User ID=demoadmin;Password=P#MO1*6tACYh;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+            "value": "Server=tcp:c9adbda7-d02c-4be5-a67f-16a30fdef641.database.windows.net,1433;Initial Catalog=SourceDatabase;Persist Security Info=False;User ID=demoadmin;Password=P#MO1*6tACYh;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
         },
         "TargetDatabase_connectionString": {
-            "value": "Server=tcp:53ed3d1d-e6c8-404c-92d2-8d2e0d0651e9.database.windows.net,1433;Initial Catalog=TargetDatabase;Persist Security Info=False;User ID=demoadmin;Password=P#MO1*6tACYh;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+            "value": "Server=tcp:46e4da1f-4403-474a-8e38-5a3efefb4ec1.database.windows.net,1433;Initial Catalog=TargetDatabase;Persist Security Info=False;User ID=demoadmin;Password=P#MO1*6tACYh;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
         } 
     }
 }

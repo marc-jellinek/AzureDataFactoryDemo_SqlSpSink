@@ -10,6 +10,10 @@
             "type": "string",
             "defaultValue": "[newGuid()]"
         }, 
+        "dataFactoryName": {
+            "type": "string", 
+            "defaultValue": "[newGuid()]"
+        }, 
         "adminUser": {
             "type": "string", 
             "defaultValue": "demoadmin"
@@ -22,12 +26,13 @@
     "variables": {
         "sourceDatabaseServerName": "[parameters('sourceServerName')]",
         "targetDatabaseServerName": "[parameters('targetServerName')]",
+        "dataFactoryName": "[parameters('dataFactoryName')]", 
         "adminUser": "[parameters('adminUser')]",
         "adminPassword": "[parameters('adminPassword')]"
     },
     "resources": [
         {  
-            "name":"AzureDataFactoryDemo-SqlSpSink-Data-Factory",
+            "name":"[concat('Data-Factory-', variables('dataFactoryName'))]",
             "apiVersion":"2018-06-01",
             "type":"Microsoft.DataFactory/factories",
             "location":"[resourceGroup().location]",
@@ -121,6 +126,10 @@
         },
         "targetDatabaseServerName": {
             "value": "[variables('targetDatabaseServerName')]",
+            "type": "string"
+        }, 
+        "dataFactoryName":{
+            "value": "[concat('Data-Factory-', variables('dataFactoryName'))]", 
             "type": "string"
         }
     }
