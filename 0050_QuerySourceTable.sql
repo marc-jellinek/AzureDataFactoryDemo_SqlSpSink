@@ -3,5 +3,6 @@ SELECT      COUNT(*)
 FROM        dbo.Employees
 
 SELECT      TOP 100
-            *
-FROM        dbo.Employees
+            e.*
+FROM        dbo.Employees e 
+ORDER BY    e.id
