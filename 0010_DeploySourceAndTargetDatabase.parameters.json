@@ -7,6 +7,9 @@
         },
         "adminPassword": {
             "value": "P#MO1*6tACYh"
-        }
+        }, 
+        "lastName": {
+            "value": "Jellinek"
+        }        
     }
 }

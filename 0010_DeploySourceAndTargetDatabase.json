@@ -21,18 +21,18 @@
         "adminPassword": {
             "type": "securestring", 
             "defaultValue": ""
+        },
+        "lastName":{
+            "type": "string", 
+            "defaultValue": "Jellinek"
         }
     },
     "variables": {
-        "sourceDatabaseServerName": "[parameters('sourceServerName')]",
-        "targetDatabaseServerName": "[parameters('targetServerName')]",
-        "dataFactoryName": "[parameters('dataFactoryName')]", 
-        "adminUser": "[parameters('adminUser')]",
-        "adminPassword": "[parameters('adminPassword')]"
+        "dataFactoryName": "[concat('AzureDataFactoryDemo-', parameters('lastname'), '-', parameters('dataFactoryName'))]"
     },
     "resources": [
         {  
-            "name":"[concat('Data-Factory-', variables('dataFactoryName'))]",
+            "name":"[variables('dataFactoryName')]",
             "apiVersion":"2018-06-01",
             "type":"Microsoft.DataFactory/factories",
             "location":"[resourceGroup().location]",
@@ -42,18 +42,18 @@
         },        
         {
             "type": "Microsoft.Sql/servers",
-            "name": "[variables('sourceDatabaseServerName')]",
+            "name": "[parameters('sourceServerName')]",
             "location": "[resourceGroup().location]",
             "apiVersion": "2015-05-01-preview",
             "properties": {
-                "administratorLogin": "[variables('adminUser')]",
-                "administratorLoginPassword": "[variables('adminPassword')]",
+                "administratorLogin": "[parameters('adminUser')]",
+                "administratorLoginPassword": "[parameters('adminPassword')]",
                 "version": "12.0"
             },
             "resources": [
                 {
                     "type": "Microsoft.Sql/servers/databases",
-                    "name": "[concat(string(variables('sourceDatabaseServerName')), '/SourceDatabase')]",
+                    "name": "[concat(string(parameters('sourceServerName')), '/SourceDatabase')]",
                     "location": "[resourceGroup().location]",
                     "apiVersion": "2017-10-01-preview",
                     "sku": {
@@ -61,7 +61,7 @@
                         "tier":"Standard"
                     },
                     "dependsOn": [
-                        "[resourceID('Microsoft.Sql/servers/', variables('sourceDatabaseServerName'))]"
+                        "[resourceID('Microsoft.Sql/servers/', parameters('sourceServerName'))]"
                     ]
                 },
                 {
@@ -70,7 +70,7 @@
                     "location": "[resourceGroup().location]",
                     "apiVersion": "2015-05-01-preview",
                     "dependsOn": [
-                        "[resourceID('Microsoft.Sql/servers/', variables('sourceDatabaseServerName'))]"
+                        "[resourceID('Microsoft.Sql/servers/', parameters('sourceServerName'))]"
                     ],
                     "properties": {
                         "startIpAddress": "0.0.0.0",
@@ -81,18 +81,18 @@
         },
         {
             "type": "Microsoft.Sql/servers",
-            "name": "[variables('targetDatabaseServerName')]",
+            "name": "[parameters('targetServerName')]",
             "location": "[resourceGroup().location]",
             "apiVersion": "2015-05-01-preview",
             "properties": {
-                "administratorLogin": "[variables('adminUser')]",
-                "administratorLoginPassword": "[variables('adminPassword')]",
+                "administratorLogin": "[parameters('adminUser')]",
+                "administratorLoginPassword": "[parameters('adminPassword')]",
                 "version": "12.0"
             },
             "resources": [
                 {
                     "type": "Microsoft.Sql/servers/databases",
-                    "name": "[concat(string(variables('targetDatabaseServerName')), '/TargetDatabase')]",
+                    "name": "[concat(string(parameters('targetServerName')), '/TargetDatabase')]",
                     "location": "[resourceGroup().location]",
                     "apiVersion": "2017-10-01-preview",
                     "sku": {
@@ -100,7 +100,7 @@
                         "tier":"Standard"
                     },
                     "dependsOn": [
-                        "[resourceID('Microsoft.Sql/servers/', variables('targetDatabaseServerName'))]"
+                        "[resourceID('Microsoft.Sql/servers/', parameters('targetServerName'))]"
                     ]
                 },
                 {
@@ -109,7 +109,7 @@
                     "location": "[resourceGroup().location]",
                     "apiVersion": "2015-05-01-preview",
                     "dependsOn": [
-                        "[resourceID('Microsoft.Sql/servers/', variables('targetDatabaseServerName'))]"
+                        "[resourceID('Microsoft.Sql/servers/', parameters('targetServerName'))]"
                     ],
                     "properties": {
                         "startIpAddress": "0.0.0.0",
@@ -121,15 +121,15 @@
     ],
     "outputs": {
         "sourceDatabaseServerName": {
-            "value": "[variables('sourceDatabaseServerName')]",
+            "value": "[parameters('sourceServerName')]",
             "type": "string"
         },
         "targetDatabaseServerName": {
-            "value": "[variables('targetDatabaseServerName')]",
+            "value": "[parameters('targetServerName')]",
             "type": "string"
         }, 
         "dataFactoryName":{
-            "value": "[concat('Data-Factory-', variables('dataFactoryName'))]", 
+            "value": "[variables('dataFactoryName')]", 
             "type": "string"
         }
     }
