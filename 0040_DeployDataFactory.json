@@ -4,16 +4,22 @@
     "parameters": {
         "factoryName": {
             "type": "string",
-            "metadata": "Data Factory Name",
+            "metadata": {
+                "description": "Data Factory Name"
+            },
             "defaultValue": "AzureDataFactoryDemo-SqlSpSink-Data-Factory"
         },
         "SourceDatabase_connectionString": {
             "type": "securestring",
-            "metadata": "Secure string for 'connectionString' of 'SourceDatabase'"
+            "metadata": {
+                "description": "Secure string for 'connectionString' of 'SourceDatabase'"
+            }
         },
         "TargetDatabase_connectionString": {
             "type": "securestring",
-            "metadata": "Secure string for 'connectionString' of 'TargetDatabase'"
+            "metadata": {
+                "description": "Secure string for 'connectionString' of 'TargetDatabase'"
+            }
         }
     },
     "variables": {
