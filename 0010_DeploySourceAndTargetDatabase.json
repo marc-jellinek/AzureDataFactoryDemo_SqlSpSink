@@ -28,7 +28,7 @@
         }
     },
     "variables": {
-        "dataFactoryName": "[concat('AzureDataFactoryDemo-', parameters('lastname'), '-', parameters('dataFactoryName'))]"
+        "dataFactoryName": "[substring(concat('AzureDataFactoryDemo-', parameters('lastname'), '-', parameters('dataFactoryName')), 0, 62)]"
     },
     "resources": [
         {  
@@ -57,7 +57,7 @@
                     "location": "[resourceGroup().location]",
                     "apiVersion": "2017-10-01-preview",
                     "sku": {
-                        "name": "S0", 
+                        "name": "S3", 
                         "tier":"Standard"
                     },
                     "dependsOn": [
@@ -96,7 +96,7 @@
                     "location": "[resourceGroup().location]",
                     "apiVersion": "2017-10-01-preview",
                     "sku": {
-                        "name": "S0", 
+                        "name": "S3", 
                         "tier":"Standard"
                     },
                     "dependsOn": [

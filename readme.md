@@ -100,7 +100,9 @@ Our next step is to deploy the source and target database servers and databases,
 
 ![Create Source and Target Database Servers and Databases](./graphics/0040_DeploySourceAndTargetDatabaseServers.png)
 
-When the template is deployed, it will tell you the connection strings for your source and target databases.  Notice that the server names for the deployed Azure SQL Servers are named as GUIDs.  These are generated as part of the deployment.  The server names must be globally unique.  Copy-and-paste these somewhere, we're going to need them later.
+When the template is deployed, it will tell you the server names for your Data Factory, source and target databases.  Notice that the server names for the deployed Azure SQL Servers are named as GUIDs.  These are generated as part of the deployment.  The server names must be globally unique.  Copy-and-paste these somewhere, we're going to need them later.
+
+The Data Factory will copy data from our source database and merge it into our target database.
 
 When this is complete, go into the Azure Portal, select your resource group and look at the resources it contains.  It should look like this (your server names will be different, but they should be named as guids).
 
@@ -139,17 +141,15 @@ Setting up dim.Employee as a temporal table means the latest state of an Employe
 
 I'm using a stored procedure as the data sink so we can process the supplied data using a single MERGE statement.  Existing Employees will be updated, Employees supplied by the source that don't exist in dim.Employees are inserted and Employees that have been deleted from the source are also deleted from the dimension table.  A record of its existence will remain in dim.Employee_History.  See https://docs.microsoft.com/en-us/azure/data-factory/connector-sql-server#invoke-a-stored-procedure-from-a-sql-sink for details on using a stored procedure in a SQL Server sink in the Copy activity.
 
-Our last deployment step is to create the Data Factory that will copy data from our source database and merge it into our target database.  
-
 In the Azure Portal, click on the Data Factory, then click on Author & Monitor.  When creating a new Data Factory, the first time I go into Author & Monitor, I'll see "Loading..." for a bit.  If you see "Loading..." for more than a minute or so, log out of all your Azure accounts.  I'm often logged in to multiple accounts simultaneously, usually my personal account, my employer's account and my customer's account.  This includes logins to outlook.com (my personal email) and portal.office.com (my employer email and my customer's email).  Log back in using only your the account that has access to your Azure subscription.  That often clears up the problem.  You should see a Data Factory that has no Connections, no Datasets and no Pipelines.  Click on the Pencil in the upper left of the screen:
 
 ![Show empty data factory](./graphics/0085_ShowEmptyDataFactory.png)
 
 We will populate the Data Factory with all the elements required to pull data from the source database and merge it into the destination database.
 
-We're going to have to tell the data factory the server names for the target and source database.  Do this by editing the parameters file associated with the data factory pipeline deployment.  Remember I asked you to copy-and-paste the output connection strings when the databases were created?  You are going to need them now.
+We're going to have to tell the data factory the server names for the target and source database as well as reference the Data Factory created above.  Do this by editing the parameters file associated with the data factory pipeline deployment.  Remember I asked you to copy-and-paste the output when the databases and Data Factory were created?  You are going to need them now.
 
-Open the file 0040_DeployDataFactory.parameters.json.  Edit the SourceDatabase_connectionString and TargetDatabase_connectionString.  You only have to edit the portion {servername}.  These will allow the data factory to connect to the source and target databases we created earlier.  
+Open the file 0040_DeployDataFactory.parameters.json.  Edit the SourceDatabase_connectionString, TargetDatabase_connectionString and factoryName.  You only have to edit the portion {servername}.  These will allow the data factory to connect to the source and target databases we created earlier.  
 
 // In the real world, connection strings, usernames, passwords and other credentials would be securely stored in Azure Key Vault, then referenced by the parameter file.
 

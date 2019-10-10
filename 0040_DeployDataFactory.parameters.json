@@ -3,13 +3,13 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "factoryName": {
-            "value": "Data-Factory-ce246355-f84e-4f6c-953d-9211100368c3"
+            "value": "AzureDataFactoryDemo-Jellinek-8013864c-35d0-4c9f-b7e4-0fcf16cb"
         },
         "SourceDatabase_connectionString": {
-            "value": "Server=tcp:c9adbda7-d02c-4be5-a67f-16a30fdef641.database.windows.net,1433;Initial Catalog=SourceDatabase;Persist Security Info=False;User ID=demoadmin;Password=P#MO1*6tACYh;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+            "value": "Server=tcp:48dacfdf-1d6c-477e-a39e-3536eb8d4ad3.database.windows.net,1433;Initial Catalog=SourceDatabase;Persist Security Info=False;User ID=demoadmin;Password=P#MO1*6tACYh;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
         },
         "TargetDatabase_connectionString": {
-            "value": "Server=tcp:46e4da1f-4403-474a-8e38-5a3efefb4ec1.database.windows.net,1433;Initial Catalog=TargetDatabase;Persist Security Info=False;User ID=demoadmin;Password=P#MO1*6tACYh;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
-        } 
+            "value": "Server=tcp:aacef2ca-d0f8-4729-9067-75717b8fec07.database.windows.net,1433;Initial Catalog=TargetDatabase;Persist Security Info=False;User ID=demoadmin;Password=P#MO1*6tACYh;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+        }
     }
 }
